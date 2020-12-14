@@ -68,6 +68,8 @@ func (c *criService) containerSpec(id string, sandboxID string, sandboxPid uint3
 
 	specOpts = append(specOpts, customopts.WithWindowsMounts(c.os, config, extraMounts))
 
+	specOpts = append(specOpts, customopts.WithWindowsDevices(config))
+
 	// Start with the image config user and override below if RunAsUsername is not "".
 	username := imageConfig.User
 

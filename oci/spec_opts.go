@@ -77,6 +77,12 @@ func setLinux(s *Spec) {
 	}
 }
 
+func setWindows(s *Spec) {
+	if s.Windows == nil {
+		s.Windows = &specs.Windows{}
+	}
+}
+
 // nolint
 func setResources(s *Spec) {
 	if s.Linux != nil {
@@ -1222,6 +1228,25 @@ func WithLinuxDevice(path, permissions string) SpecOpts {
 			Access: permissions,
 		})
 
+		return nil
+	}
+}
+
+func WithWindowsDevice(path string) SpecOpts {
+	return func(_ context.Context, _ Client, _ *containers.Container, s *Spec) error {
+		setWindows(s)
+		srcParts := strings.SplitN(path, "/", 2)
+		if len(srcParts) != 2 {
+			return errors.New("Invalid device path")
+		}
+		if srcParts[0] != "class" {
+			return errors.Errorf("invalid device assignment type: '%s' should be 'class'", srcParts[0])
+		}
+		wd := specs.WindowsDevice{
+			ID:     srcParts[1],
+			IDType: srcParts[0],
+		}
+		s.Windows.Devices = append(s.Windows.Devices, wd)
 		return nil
 	}
 }

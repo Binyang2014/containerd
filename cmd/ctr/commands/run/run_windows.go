@@ -122,6 +122,9 @@ func NewContainer(ctx gocontext.Context, client *containerd.Client, context *cli
 		if ccount != 0 {
 			opts = append(opts, oci.WithWindowsCPUCount(ccount))
 		}
+		for _, dev := range context.StringSlice("device") {
+			opts = append(opts, oci.WithWindowsDevice(dev))
+		}
 	}
 
 	cOpts = append(cOpts, containerd.WithContainerLabels(commands.LabelArgs(context.StringSlice("label"))))

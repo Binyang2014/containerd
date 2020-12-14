@@ -222,3 +222,39 @@ func WithWindowsCredentialSpec(credentialSpec string) oci.SpecOpts {
 		return nil
 	}
 }
+
+func addDevice(s *runtimespec.Spec, wd runtimespec.WindowsDevice) {
+	for i, dev := range s.Windows.Devices {
+		if dev.ID == wd.ID {
+			s.Windows.Devices[i] = wd
+			return
+		}
+	}
+	s.Windows.Devices = append(s.Windows.Devices, wd)
+}
+
+// WithWindowsDevices sets the provided devices onto the container spec
+func WithWindowsDevices(config *runtime.ContainerConfig) oci.SpecOpts {
+	return func(ctx context.Context, client oci.Client, c *containers.Container, s *runtimespec.Spec) (err error) {
+		if s.Windows == nil {
+			s.Windows = &runtimespec.Windows{}
+		}
+		for _, device := range config.GetDevices() {
+			// This is a hack since cri not support windows device format
+			srcParts := strings.SplitN(device.HostPath, "/", 2)
+			if len(srcParts) != 2 {
+				return errors.New("invalid device assignment path")
+			}
+			if srcParts[0] != "class" {
+				return errors.Errorf("invalid device assignment type: '%s' should be 'class'", srcParts[0])
+			}
+			wd := runtimespec.WindowsDevice{
+				ID:     srcParts[1],
+				IDType: srcParts[0],
+			}
+
+			addDevice(s, wd)
+		}
+		return nil
+	}
+}
