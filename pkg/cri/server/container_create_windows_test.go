@@ -62,6 +62,9 @@ func getCreateContainerTestData() (*runtime.ContainerConfig, *runtime.PodSandbox
 				Readonly:      true,
 			},
 		},
+		Devices: []*runtime.Device{
+			{HostPath: "class/5B45201D-F2F2-4F3B-85BB-30FF1F953599"},
+		},
 		Labels:      map[string]string{"a": "b"},
 		Annotations: map[string]string{"c": "d"},
 		Windows: &runtime.WindowsContainerConfig{
@@ -126,6 +129,10 @@ func getCreateContainerTestData() (*runtime.ContainerConfig, *runtime.PodSandbox
 
 		assert.Contains(t, spec.Annotations, annotations.ContainerType)
 		assert.EqualValues(t, spec.Annotations[annotations.ContainerType], annotations.ContainerTypeContainer)
+
+		t.Logf("Check container device mount")
+		assert.EqualValues(t, spec.Windows.Devices[0].IDType, "class")
+		assert.EqualValues(t, spec.Windows.Devices[0].ID, "5B45201D-F2F2-4F3B-85BB-30FF1F953599")
 	}
 	return config, sandboxConfig, imageConfig, specCheck
 }
